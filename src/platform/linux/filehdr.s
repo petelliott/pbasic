@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .section .elf
     .globl page_start
     .globl line_buffer
-    .globl line_buffer_len
 page_start:
 elf_header:
 line_buffer: /* 80 byte line buffer */
@@ -50,7 +49,7 @@ elf_pht:
     .4byte 1 /* p_type=PT_LOAD */
     .4byte 7 /* p_flags=RWX */
     .8byte 0 /* p_offset */
-line_buffer_len:
+tmp0:
     .8byte elf_header /* p_vaddr */
 tmp1:
     .8byte elf_header /* p_paddr */

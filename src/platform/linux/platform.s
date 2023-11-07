@@ -24,10 +24,8 @@ read_line:                      /* read_line() */
     mov $line_buffer, %esi      /* line_buffer */
     mov $80, %edx               /* count */
     syscall
-    movb $0, line_buffer(%eax)  /* nul terminate */
-    mov %eax, line_buffer_len
+    movb $0, (%esi,%eax)       /* nul terminate */
     ret
-
 
     .globl write_string
     .globl write_string_n
@@ -46,12 +44,13 @@ write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
     syscall
     ret
 
+
     .globl write_char
 write_char: /* write_char(ch %rdi) */
     mov %edi, %eax
-    movb %al, -1(%esp) /* using the red-zone so we can jump and skip the cleanup */
-    mov %esp, %edi
+    mov %esp, %edi /* using the red-zone so we can jump and skip the cleanup */
     dec %edi
+    movb %al, (%edi)
     xor %esi, %esi
     inc %esi /* len=1 */
     jmp write_string_n /* tail call */
