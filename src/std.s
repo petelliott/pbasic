@@ -1,5 +1,5 @@
 /*
-the linux entry point of pbasic
+standard util functions including libc ones.
 Copyright (C) 2023 Peter Elliott
 
 This program is free software: you can redistribute it and/or modify
@@ -17,16 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
     .text
-    .globl _start
-
-_start:
-    mov $(page_start + 4096), %rsp
-loop0:
-    call read_line
-    mov $line_buffer, %rdi
-    /*mov line_buffer_len, %rsi*/
-    call write_string
-    jmp loop0
-    mov $0, %rdi
-    mov $60, %rax
-    syscall
+    .globl strlen
+strlen: /* strlen(string %rdi) -> len %rax */
+    xor %ecx, %ecx
+    dec %rcx
+    xor %eax, %eax
+    repne scasb
+    sub %rcx, %rax
+    sub $2, %rax
+    ret
