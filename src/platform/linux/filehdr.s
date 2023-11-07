@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .section .elf
     .globl page_start
     .globl line_buffer
-    .globl line_buffer_end
     .globl line_buffer_len
 page_start:
 elf_header:
@@ -34,7 +33,7 @@ line_buffer: /* 80 byte line buffer */
     .2byte 0x02 /* e_type */
     .2byte 0x3e /* e_machine */
     .4byte 1 /* e_version */
-    .8byte _one_page_start /* e_entry */
+    .8byte _start /* e_entry */
     .8byte 64 /* e_phoff */
     /* can fuck with */
     .8byte 0 /* e_shoff */
@@ -51,13 +50,14 @@ elf_pht:
     .4byte 1 /* p_type=PT_LOAD */
     .4byte 7 /* p_flags=RWX */
     .8byte 0 /* p_offset */
-line_buffer_end:
 line_buffer_len:
     .8byte elf_header /* p_vaddr */
+tmp1:
     .8byte elf_header /* p_paddr */
+tmp2:
     .8byte 4096 /* p_filesz */
+tmp3:
     .8byte 4096 /* p_memsz */
+tmp4:
     .8byte 4096 /* p_align */
-
-    .zero 4 /* pad to 16 byte align our stack */
-elf_aligned_end:
+elf_end:

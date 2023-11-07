@@ -9,6 +9,8 @@ SECTIONS
     }
     .data : { *(.data) }
     .bss : { *(.bss) }
+    _end = .; PROVIDE (end = .);
+
     /DISCARD/ : {
         *(.note.gnu.property)
     }

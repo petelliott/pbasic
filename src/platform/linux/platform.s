@@ -45,3 +45,13 @@ write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
     mov %edi, %eax                /* SYS_WRITE=1 */
     syscall
     ret
+
+    .globl write_char
+write_char: /* write_char(ch %rdi) */
+    mov %edi, %eax
+    movb %al, -1(%esp) /* using the red-zone so we can jump and skip the cleanup */
+    mov %esp, %edi
+    dec %edi
+    xor %esi, %esi
+    inc %esi /* len=1 */
+    jmp write_string_n /* tail call */
