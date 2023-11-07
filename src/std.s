@@ -20,9 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl strlen
 strlen: /* strlen(string %rdi) -> len %rax */
     xor %ecx, %ecx
-    dec %rcx
+    dec %ecx
     xor %eax, %eax
     repne scasb
-    sub %rcx, %rax
-    sub $2, %rax
+    sub %ecx, %eax
+    sub $2, %eax
     ret

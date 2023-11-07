@@ -19,13 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text
     .globl read_line
 read_line:                      /* read_line() */
-    mov $0, %rax                /* SYS_READ */
-    mov $0, %rdi                /* STDIN_FILENO */
-    mov $line_buffer, %rsi      /* line_buffer */
-    mov $80, %rdx               /* count */
+    xor %eax, %eax              /* SYS_READ=0 */
+    xor %edi, %edi              /* STDIN_FILENO=0 */
+    mov $line_buffer, %esi      /* line_buffer */
+    mov $80, %edx               /* count */
     syscall
-    movb $0, line_buffer(%rax)  /* nul terminate */
-    mov %rax, line_buffer_len
+    movb $0, line_buffer(%eax)  /* nul terminate */
+    mov %eax, line_buffer_len
     ret
 
 
@@ -35,12 +35,13 @@ write_string:                   /* write_string(string %rdi) */
     push %rdi
     call strlen
     pop %rdi
-    mov %rax, %rsi
+    mov %eax, %esi
     /* intentional fallthrough */
 write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
-    mov %rsi, %rdx              /* count */
-    mov %rdi, %rsi              /* string */
-    mov $1, %rdi                /* STDOUT_FILENO */
-    mov $1, %rax                /* SYS_WRITE */
+    mov %esi, %edx              /* count */
+    mov %edi, %esi              /* string */
+    xor %edi,%edi
+    inc %edi                    /* STDOUT_FILENO=1 */
+    mov %edi, %eax                /* SYS_WRITE=1 */
     syscall
     ret

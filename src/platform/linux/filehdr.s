@@ -34,7 +34,7 @@ line_buffer: /* 80 byte line buffer */
     .2byte 0x02 /* e_type */
     .2byte 0x3e /* e_machine */
     .4byte 1 /* e_version */
-    .8byte _start /* e_entry */
+    .8byte _one_page_start /* e_entry */
     .8byte 64 /* e_phoff */
     /* can fuck with */
     .8byte 0 /* e_shoff */

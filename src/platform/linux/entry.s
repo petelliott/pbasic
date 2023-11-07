@@ -18,15 +18,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     .text
     .globl _start
+    .globl _one_page_start
 
+_one_page_start:
+    mov $(page_start + 4096), %esp
 _start:
-    mov $(page_start + 4096), %rsp
 loop0:
     call read_line
-    mov $line_buffer, %rdi
+    mov $line_buffer, %edi
     /*mov line_buffer_len, %rsi*/
     call write_string
     jmp loop0
-    mov $0, %rdi
-    mov $60, %rax
+    xor %edi, %edi
+    mov $60, %eax
     syscall
