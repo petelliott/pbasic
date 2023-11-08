@@ -21,21 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 _start:
     mov $(page_start + 4096), %esp
-    mov $'h', %edi
-    call write_char
-    mov $'e', %edi
-    call write_char
-    mov $'l', %edi
-    call write_char
-    mov $'l', %edi
-    call write_char
-    mov $'o', %edi
-    call write_char
-    mov $'\n', %edi
-    call write_char
+    mov $20, %edi
+    call write_int
+    call newline
 loop0:
     call read_line
-    mov $line_buffer, %edi
+    mov %eax, %edi
     call write_string
     jmp loop0
     xor %edi, %edi

@@ -1,5 +1,5 @@
 /*
-standard util functions including libc ones.
+standard utility functions
 Copyright (C) 2023 Peter Elliott
 
 This program is free software: you can redistribute it and/or modify
@@ -26,3 +26,55 @@ strlen: /* strlen(string %rdi) -> len %rax */
     sub %ecx, %eax
     sub $2, %eax
     ret
+
+
+    .globl write_int
+    .globl write_uint
+    /* write a signed integer to stdout */
+write_int:
+    test %edi, %edi
+    jns write_uint
+    push %rdi
+    mov $'-', %edi
+    call write_char
+    pop %rdi
+    neg %edi
+    /* intentional fallthrough */
+write_uint:
+    mov %edi, %esi /* esi=current number (untouched by uilog10) */
+    /* BEGIN INLINE P10above */
+    /* gets the power of 10 above edi (min 10) */
+p10above:
+    xor %eax, %eax
+    inc %eax       /* eax= the power of 10 (starts at 1) */
+    mov $10, %ecx
+0:
+    xor %edx, %edx
+    mul %ecx
+    cmp %eax, %edi
+    jae 0b
+1:
+    /* END INLINE P10above */
+2:
+    xor %edx, %edx
+    mov $10, %ecx
+    div %ecx       /* divide current divisor by 10 */
+    push %rax
+    push %rsi
+    xchg %esi, %eax
+    div %esi       /* divide current number by current divisor */
+    xor %edx, %edx
+    div %ecx       /* mod 10 */
+    mov %edx, %edi
+    add $'0', %edi
+    call write_char /* write the char */
+    pop %rsi
+    pop %rax
+    cmp $1, %eax
+    ja 2b
+    ret
+
+    .globl newline
+newline:
+    mov $'\n', %rdi
+    jmp write_char /* tail call to write char */

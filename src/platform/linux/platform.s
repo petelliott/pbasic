@@ -24,7 +24,8 @@ read_line:                      /* read_line() */
     mov $line_buffer, %esi      /* line_buffer */
     mov $80, %edx               /* count */
     syscall
-    movb $0, (%esi,%eax)       /* nul terminate */
+    movb $0, (%esi,%eax)        /* nul terminate */
+    mov %esi, %eax
     ret
 
     .globl write_string
@@ -40,7 +41,7 @@ write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
     mov %edi, %esi              /* string */
     xor %edi,%edi
     inc %edi                    /* STDOUT_FILENO=1 */
-    mov %edi, %eax                /* SYS_WRITE=1 */
+    mov %edi, %eax              /* SYS_WRITE=1 */
     syscall
     ret
 
