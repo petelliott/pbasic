@@ -1,5 +1,5 @@
 /*
-pbasic utility macros
+pbasic error handling routines
 Copyright (C) 2023 Peter Elliott
 
 This program is free software: you can redistribute it and/or modify
@@ -16,24 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+    .include "macros.s"
 
-    .macro ldaddr src dst
-    mov $page_start, %e\dst         /* set top of eax */
-    movw word_table(,\src,2), %\dst /* load relative address part of eax */
+    .text
+    .globl error_handler
+error_handler: /* error_handler(errorcode: %edi) */
+    mov $(page_start + 4096), %esp /* reset the stack */
+    push %rdi
+    call newline
+    mov $' ', %edi
+    call write_char
+    mov %esp, %edi
+    call write_string
+    pop %rdi
+    mov $error_str, %edi
+    call write_string
+    jmp repl_not_ok /* resume the repl */
+
+
+    .data
+error_str:  .asciz " ERROR\n"
+
+    .macro error_code name,c1,c2
+    .globl \name
+    .set \name, \c1 | (\c2 << 8)
     .endm
 
-    .macro isnotdig reg, label
-    cmpb $'0', \reg
-    jl \label
-    cmpb $'9', \reg
-    jg \label
-    .endm
-
-    .macro breakpoint
-    int $3
-    .endm
-
-    .macro error jump,code
-    mov $\code, %edi
-    \jump error_handler
-    .endm
+    error_code OM, 'O, 'M
+    error_code SN, 'S, 'N
+    error_code US, 'U, 'S

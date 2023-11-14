@@ -23,7 +23,7 @@ _start:
     mov $(page_start + 4096), %esp
     mov %esp, %edi
     sub $end, %edi
-    mov %rdi, %r15 /* setup r15, the end of our heap */
+    mov $end, %r15 /* setup r15, the end of our heap */
     xor %r14, %r14 /* set pointer to first statement to 0 */
     call write_int
     mov $bytes_free, %rdi
