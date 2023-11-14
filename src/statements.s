@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text
     .globl statement_end
 statement_end:
-    jmp unsupported_statement
+    jmp repl
 
 
     .globl statement_goto
@@ -84,7 +84,7 @@ statement_run:
 
     .globl statement_new
 statement_new:
-    jmp unsupported_statement
+    jmp _start
 
 
     .globl statement_load
