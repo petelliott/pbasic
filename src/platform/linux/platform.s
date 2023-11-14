@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     .text
     .globl read_line
-read_line:                      /* read_line() */
+read_line:                      /* read_line() -> ptr */
     xor %eax, %eax              /* SYS_READ=0 */
     xor %edi, %edi              /* STDIN_FILENO=0 */
     mov $line_buffer, %esi      /* line_buffer */

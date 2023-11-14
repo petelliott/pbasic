@@ -1,5 +1,5 @@
 /*
-the linux entry point of pbasic
+pbasic utility macros
 Copyright (C) 2023 Peter Elliott
 
 This program is free software: you can redistribute it and/or modify
@@ -16,19 +16,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-    .text
-    .globl _start
 
-_start:
-    mov $(page_start + 4096), %esp
-    mov %esp, %edi
-    sub $end, %edi
-    mov %rdi, %r15 /* setup r15, the end of our heap */
-    xor %r14, %r14 /* set pointer to first statement to 0 */
-    call write_int
-    mov $bytes_free, %rdi
-    call write_string
-    jmp repl /* start the repl */
+    .macro ldaddr src dst
+    mov $page_start, %e\dst         /* set top of eax */
+    movw word_table(,\src,2), %\dst /* load relative address part of eax */
+    .endm
 
-    .data
-bytes_free:   .asciz " BYTES FREE\n"
+    .macro isnotdig reg, label
+    cmpb $'0', \reg
+    jl \label
+    cmpb $'9', \reg
+    jg \label
+    .endm
+
+    .macro breakpoint
+    int $3
+    .endm
