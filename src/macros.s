@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
-    .macro ldaddr src dst
+    .macro ldaddr table, src, dst
     mov $page_start, %e\dst         /* set top of eax */
-    movw word_table(,\src,2), %\dst /* load relative address part of eax */
+    movw \table(,\src,2), %\dst /* load relative address part of eax */
     .endm
 
     .macro isnotdig reg, label

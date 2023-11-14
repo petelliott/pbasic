@@ -24,7 +24,7 @@ encodings.
 | RSP      | stack pointer     | callee   |
 | R8       | arg4              | caller   |
 | R9       | arg5              | caller   |
-| R10      |                   | caller   |
+| R10      | static chain pointer | caller   |
 | R11      |                   | caller   |
 | R12      |                   | callee   |
 | R13      | execution context | callee   |

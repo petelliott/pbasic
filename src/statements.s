@@ -101,7 +101,7 @@ statement_save:
 unsupported_statement:
     mov $unsupported_string, %edi
     call write_string
-    ret
+    jmp *%r10
 
     .data
 unsupported_string: .asciz "unsupported statement\n"

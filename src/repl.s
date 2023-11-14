@@ -24,9 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
     .text
     .globl repl
+    .globl repl_not_ok
 repl:
     mov $ok_str, %rdi
     call write_string
+repl_not_ok:
     call read_line /* eax is a pointer to a line buffer that we can mess with */
     mov %eax, %ebx
     add $20, %ebx  /* ebx is the address we will begin writing tokenized code to. intentionally overlapping with linebuffer */
@@ -63,9 +65,9 @@ word_case:
     inc %ecx
     cmp $word_table_length, %ecx
     je 3f
-    mov %r10, %rdi             /* rdi=mutable string ptr for compare */
-    ldaddr %ecx, ax            /* load extended address into eax */
-    mov %eax, %esi             /* rsi=current word in table */
+    mov %r10, %rdi              /* rdi=mutable string ptr for compare */
+    ldaddr word_table, %ecx, ax /* load extended address into eax */
+    mov %eax, %esi              /* rsi=current word in table */
     /* string compare */
 1:
     xor %eax, %eax
@@ -81,12 +83,20 @@ word_case:
     movb %cl, (%ebx) /* emit encoded byte */
     inc %ebx
     mov %rdi, %r10
-3:
     jmp process_tokens
-    /* CASE 2: TODO */
+3:
+    /* TODO */
+    jmp process_tokens
 run_command:
-    breakpoint
-    jmp repl
+    test %r13, %r13
+    jz repl /* no command to be run (in line mode) */
+    cmpb $statement_table_length, (%r13)
+    error jg, SN
+    mov $repl, %r10
+    xor %ecx, %ecx
+    movb (%r13), %cl
+    ldaddr statement_table, %ecx, ax /* load extended address into eax */
+    jmp *%rax /* call  */
     /* END repl (no ret because the repl doesn't return) */
 
 repl_get_num:
