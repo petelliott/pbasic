@@ -136,6 +136,7 @@ word_case:
     mov %rdi, %r10
     jmp process_tokens
 3:
+
 var_case:
     /* TODO */
     jmp process_tokens
@@ -145,11 +146,9 @@ run_command:
     jz repl /* no command to be run (in line mode) */
     cmpb $statement_table_length, (%r13)
     error jg, SN
-    mov $repl, %r10
-    xor %ecx, %ecx
-    movb (%r13), %cl
-    ldaddr statement_table, %ecx, ax /* load extended address into eax */
-    jmp *%rax /* call  */
+    xor %eax, %eax
+    set_nextline %ax
+    jmp exec_line
     /* END repl (no ret because the repl doesn't return) */
 
 repl_get_num:

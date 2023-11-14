@@ -33,7 +33,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     int $3
     .endm
 
-    .macro error jump,code
+    .macro error jump, code
     mov $\code, %edi
     \jump error_handler
+    .endm
+
+    .macro get_linenumber reg
+    movw -4(%r13), \reg
+    .endm
+
+    .macro set_linenumber reg
+    movw \reg, -4(%r13)
+    .endm
+
+    .macro get_nextline reg
+    mov $page_start, %e\reg
+    movw -2(%r13), %\reg
+    .endm
+
+    .macro set_nextline reg
+    movw \reg, -2(%r13)
     .endm

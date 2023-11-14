@@ -8,7 +8,7 @@ EXECUTABLE=pbasic
 
 OBJS=src/platform/$(PLATFORM)/entry.o src/platform/$(PLATFORM)/filehdr.o \
 	 src/platform/$(PLATFORM)/platform.o src/std.o src/repl.o src/words.o \
-	 src/statements.o src/error.o
+	 src/statements.o src/error.o src/exec.o
 
 $(EXECUTABLE): $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@

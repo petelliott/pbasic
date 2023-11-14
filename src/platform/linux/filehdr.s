@@ -22,9 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl exec_buffer
 page_start:
 elf_header:
-exec_buffer:
     .byte 0x7f
     .ascii "ELF"
+exec_buffer:
     .byte 2, 1, 1, 0 /* EI_CLASS, EI_DATA, EI_VERSION, EI_OSABI */
     /* can fuck with */
     .byte 0 /* EI_ABIVERSION */
