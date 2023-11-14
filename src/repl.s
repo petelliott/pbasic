@@ -37,18 +37,20 @@ repl_not_ok:
 parse_line_num:
 
 process_tokens:
-    /* handle whitespace and eof */
+    /* handle eof */
     movb (%r10), %al
     cmpb $0, %al
     je run_command
-    cmpb $' ', %al
-    je whitespace_case
-    cmpb $'\n', %al
-    jne number_case
 
 whitespace_case:
+    cmpb $' ', %al
+    je 0f
+    cmpb $'\n', %al
+    jne 1f
+0:
     inc %r10
     jmp process_tokens
+1:
 
 number_case:
     isnotdig %al, 0f
@@ -57,6 +59,7 @@ number_case:
     inc %ebx
     mov %eax, (%ebx)
     add $4, %ebx
+    jmp process_tokens
 0:
 
 string_case:
