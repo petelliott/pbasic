@@ -84,6 +84,31 @@ string_case:
     jmp process_tokens
 2:
 
+symbol_case:
+    /* handwritten ispunct */
+    cmpb $'!', %al
+    jl 1f
+    cmpb $'/', %al
+    jle 0f
+    cmpb $':', %al
+    jl 1f
+    cmpb $'@', %al
+    jle 0f
+    cmpb $'[', %al
+    jl 1f
+    cmpb $'`', %al
+    jle 0f
+    cmpb $'{', %al
+    jl 1f
+    cmpb $'~', %al
+    jle 0f
+0:
+    inc %r10
+    movb %al, (%ebx) /* emit symbols directly */
+    inc %ebx
+    jmp process_tokens
+1:
+
 word_case:
     xor %ecx, %ecx
     dec %ecx /* current statement index -1 */
