@@ -30,8 +30,7 @@ repl:
     call write_string
 repl_not_ok:
     call read_line /* eax is a pointer to a line buffer that we can mess with */
-    mov %eax, %ebx
-    add $20, %ebx  /* ebx is the address we will begin writing tokenized code to. intentionally overlapping with linebuffer */
+    mov $exec_buffer, %ebx  /* ebx is the address we will begin writing tokenized code */
     mov %rbx, %r13 /* set execution context */
     mov %rax, %r10 /* r10 holds the line buffer long term */
     /* TODO: handle line number here */
@@ -52,12 +51,34 @@ whitespace_case:
     jmp process_tokens
 
 number_case:
-    isnotdig %al, word_case
+    isnotdig %al, string_case
     call repl_get_num
     movb $token_num, (%ebx)
     inc %ebx
     mov %eax, (%ebx)
     add $4, %ebx
+
+string_case:
+    cmpb $'\"', %al
+    jne word_case
+    movb $token_str, (%ebx) /* emit the str byte */
+    inc %ebx
+0:
+    inc %r10
+    movb (%r10), %al /* read a byte */
+    cmpb $0, %al
+    error je, SN
+    cmpb $'\"', %al
+    je 1f
+    movb %al, (%ebx) /* emit the str byte */
+    inc %ebx
+    jmp 0b
+1:
+    inc %r10
+    movb $0, (%ebx)
+    inc %ebx
+    jmp process_tokens
+
 word_case:
     xor %ecx, %ecx
     dec %ecx /* current statement index -1 */
@@ -87,6 +108,7 @@ word_case:
 3:
     /* TODO */
     jmp process_tokens
+
 run_command:
     test %r13, %r13
     jz repl /* no command to be run (in line mode) */
@@ -113,11 +135,6 @@ repl_get_num:
     jmp 0b
 1:
     ret
-
-
-
-
-
 
     .data
 ok_str: .asciz "\n OK\n"

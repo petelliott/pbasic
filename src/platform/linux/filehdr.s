@@ -19,9 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .section .elf
     .globl page_start
     .globl line_buffer
+    .globl exec_buffer
 page_start:
 elf_header:
-line_buffer: /* 80 byte line buffer */
+exec_buffer:
     .byte 0x7f
     .ascii "ELF"
     .byte 2, 1, 1, 0 /* EI_CLASS, EI_DATA, EI_VERSION, EI_OSABI */
@@ -36,6 +37,7 @@ line_buffer: /* 80 byte line buffer */
     .8byte 64 /* e_phoff */
     /* can fuck with */
     .8byte 0 /* e_shoff */
+line_buffer:                /* 80 byte line buffer */
     .4byte 0 /* e_flags */
     .2byte 64 /* e_ehsize */
     /* can't fuck with */
