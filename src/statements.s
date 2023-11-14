@@ -15,6 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+    .include "macros.s"
+
 
     .text
     .globl statement_end
@@ -49,8 +51,50 @@ statement_let:
 
     .globl statement_print
 statement_print:
-    jmp unsupported_statement
+    mov %edi, %ebx
+    inc %ebx
+0:
+    movb (%ebx), %al
+    inc %ebx
+    cmpb $token_num, %al
+    je print_num
+    cmpb $token_str, %al
+    je print_str
+    cmpb $',', %al
+    je print_comma
+    cmpb $';', %al
+    je print_semicolon
+    cmpb $token_eof, %al
+    je 1f
+    error jmp, SN
 
+print_num:
+    movl (%ebx), %edi
+    call write_int
+    add $4, %ebx
+    jmp 0b
+print_str:
+    mov %ebx, %edi
+    call write_string
+    mov %ebx, %edi
+    call strlen
+    add %eax, %ebx
+    inc %ebx
+    jmp 0b
+print_comma:
+    mov $'\t', %edi
+    call write_char
+    /* intentional fallthrough */
+print_semicolon:
+    /* special case for trailing newline */
+    movb (%ebx), %al
+    cmpb $token_eof, %al
+    je 2f
+    jmp 0b
+1:
+    call newline
+2:
+    jmp exec_next_line
 
     .globl statement_rem
 statement_rem:

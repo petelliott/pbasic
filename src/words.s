@@ -85,3 +85,5 @@ statement_table_end:
     .set token_str, word_table_length+1
     .globl token_var
     .set token_var, word_table_length+2
+    .globl token_eof
+    .set token_eof, word_table_length+3

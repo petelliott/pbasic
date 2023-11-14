@@ -142,6 +142,7 @@ var_case:
     jmp process_tokens
 
 run_command:
+    movb $token_eof, (%ebx) /* terminate line */
     test %r13, %r13
     jz repl /* no command to be run (in line mode) */
     cmpb $statement_table_length, (%r13)
