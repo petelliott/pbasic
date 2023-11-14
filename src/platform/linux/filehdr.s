@@ -51,14 +51,9 @@ elf_pht:
     .4byte 1 /* p_type=PT_LOAD */
     .4byte 7 /* p_flags=RWX */
     .8byte 0 /* p_offset */
-tmp0:
     .8byte elf_header /* p_vaddr */
-tmp1:
     .8byte elf_header /* p_paddr */
-tmp2:
     .8byte 4096 /* p_filesz */
-tmp3:
     .8byte 4096 /* p_memsz */
-tmp4:
     .8byte 4096 /* p_align */
 elf_end:

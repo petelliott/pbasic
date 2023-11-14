@@ -51,16 +51,17 @@ whitespace_case:
     jmp process_tokens
 
 number_case:
-    isnotdig %al, string_case
+    isnotdig %al, 0f
     call repl_get_num
     movb $token_num, (%ebx)
     inc %ebx
     mov %eax, (%ebx)
     add $4, %ebx
+0:
 
 string_case:
     cmpb $'\"', %al
-    jne word_case
+    jne 2f
     movb $token_str, (%ebx) /* emit the str byte */
     inc %ebx
 0:
@@ -78,6 +79,7 @@ string_case:
     movb $0, (%ebx)
     inc %ebx
     jmp process_tokens
+2:
 
 word_case:
     xor %ecx, %ecx
@@ -106,6 +108,7 @@ word_case:
     mov %rdi, %r10
     jmp process_tokens
 3:
+var_case:
     /* TODO */
     jmp process_tokens
 
