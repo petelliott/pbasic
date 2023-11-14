@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl page_start
     .globl line_buffer
     .globl exec_buffer
+    .globl code_head
 page_start:
 elf_header:
     .byte 0x7f
@@ -36,8 +37,8 @@ exec_buffer:
     .8byte _start /* e_entry */
     .8byte 64 /* e_phoff */
     /* can fuck with */
-    .8byte 0 /* e_shoff */
 line_buffer:                /* 80 byte line buffer */
+    .8byte 0 /* e_shoff */
     .4byte 0 /* e_flags */
     .2byte 64 /* e_ehsize */
     /* can't fuck with */
@@ -55,5 +56,6 @@ elf_pht:
     .8byte elf_header /* p_paddr */
     .8byte 4096 /* p_filesz */
     .8byte 4096 /* p_memsz */
+code_head:
     .8byte 4096 /* p_align */
 elf_end:

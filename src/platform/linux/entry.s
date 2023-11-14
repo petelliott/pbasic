@@ -24,11 +24,11 @@ _start:
     mov %esp, %edi
     sub $end, %edi
     mov $end, %r15 /* setup r15, the end of our heap */
-    xor %r14, %r14 /* set pointer to first statement to 0 */
+    movw $0, code_head /* set pointer to first statement to 0 */
     call write_int
     mov $bytes_free, %rdi
     call write_string
     jmp repl /* start the repl */
 
     .data
-bytes_free:   .asciz " BYTES FREE\n"
+bytes_free:   .asciz " bytes free\n"

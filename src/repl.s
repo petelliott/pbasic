@@ -33,8 +33,18 @@ repl_not_ok:
     mov $exec_buffer, %ebx  /* ebx is the address we will begin writing tokenized code */
     mov %rbx, %r13 /* set execution context */
     mov %rax, %r10 /* r10 holds the line buffer long term */
-    /* TODO: handle line number here */
+
 parse_line_num:
+    movb (%r10), %al
+    isnotdig %al, process_tokens
+    xor %r13, %r13 /* zero the exec context to signal that we are adding a line */
+    mov %r15, %rbx
+    call repl_get_num /* eax = line number */
+    movw %ax, (%ebx)
+    add $4, %ebx /* allocate space for line number and nextptr */
+    mov %ebx, %edi
+    mov %eax, %esi
+    call insert_line
 
 process_tokens:
     /* handle eof */
@@ -117,7 +127,7 @@ word_case:
     cmp $word_table_length, %ecx
     je 3f
     mov %r10, %rdi              /* rdi=mutable string ptr for compare */
-    ldaddr word_table, %ecx, ax /* load extended address into eax */
+    ldaddr_tbl word_table, %ecx, ax /* load extended address into eax */
     mov %eax, %esi              /* rsi=current word in table */
     /* string compare */
 1:
@@ -139,17 +149,23 @@ word_case:
 
 var_case:
     /* TODO */
+    inc %r10
     jmp process_tokens
 
 run_command:
     movb $token_eof, (%ebx) /* terminate line */
+    inc %ebx
     test %r13, %r13
-    jz repl /* no command to be run (in line mode) */
+    jz enter_line /* no command to be run (in line mode) */
     cmpb $statement_table_length, (%r13)
     error jg, SN
     xor %eax, %eax
     set_nextline %ax
     jmp exec_line
+
+enter_line:
+    mov %rbx, %r15 /* skip the heap we've allocated */
+    jmp repl_not_ok
     /* END repl (no ret because the repl doesn't return) */
 
 repl_get_num:

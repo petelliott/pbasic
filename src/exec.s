@@ -29,6 +29,58 @@ exec_next_line:
 exec_line:
     xor %ecx, %ecx
     movb (%r13), %cl
-    ldaddr statement_table, %ecx, ax /* load extended address into eax */
+    ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
     mov %r13, %rdi /* provide a mutable r13 in edi */
     jmp *%rax /* call the statement handler */
+
+
+    /* TODO: write a better macro to get line number */
+
+    .globl get_line
+get_line: /* %rdi: target line num, throws US */
+    mov %edi, %edx
+    mov %edi, %esi
+    mov $code_head, %edi
+    call line_slot
+    ldaddr (%eax), cx
+    xor %eax, %eax
+    movw -4(%ecx), %ax /* ax = line number of next line */
+    cmp %edx, %eax
+    error jne, US
+    mov %ecx, %eax
+    ret
+
+    .globl insert_line
+insert_line: /* %rdi: line ptr, %rsi, target line */
+    mov %edi, %edx
+    mov $code_head, %edi
+    call line_slot
+    ldaddr (%eax), cx
+    cmpw $0, %cx
+    je 0f
+    xchg %esi, %eax /* esi hasn't been clobbered */
+    cmpw -4(%ecx), %ax
+    xchg %esi, %eax /* esi hasn't been clobbered */
+    jne 0f
+    /* overwrite, since lines are equal */
+    movw -2(%ecx), %cx
+0:
+    /* insert the line */
+    movw %dx, (%eax)
+    movw %cx, -2(%edx)
+    ret
+
+line_slot: /* rdi: double pointer to code head, rsi: target line num */
+    cmpw $0, (%edi)
+    je 0f
+    ldaddr (%edi), cx
+    xor %eax, %eax
+    movw -4(%ecx), %ax /* ax = line number of next line */
+    cmp %eax, %esi
+    jle 0f
+    sub $2, %ecx
+    mov %ecx, %edi
+    jmp line_slot
+0:
+    mov %edi, %eax
+    ret

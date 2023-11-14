@@ -123,7 +123,9 @@ statement_list:
 
     .globl statement_run
 statement_run:
-    jmp unsupported_statement
+    ldaddr code_head, ax
+    mov %rax, %r13
+    jmp exec_line
 
 
     .globl statement_new

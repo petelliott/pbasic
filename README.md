@@ -28,5 +28,5 @@ encodings.
 | R11      |                   | caller   |
 | R12      |                   | callee   |
 | R13      | execution context | callee   |
-| R14      | basic code head   | callee   |
+| R14      |                   | callee   |
 | R15      | end of heap       | callee   |
