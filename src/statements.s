@@ -26,7 +26,19 @@ statement_end:
 
     .globl statement_goto
 statement_goto:
-    jmp unsupported_statement
+    mov %edi, %eax
+    inc %eax
+    cmpb $token_num, (%eax)
+    error jne, SN
+    inc %eax
+    movl (%eax), %ecx
+    add $4, %eax
+    cmpb $token_eof, (%eax)
+    error jne, SN
+    mov %ecx, %edi
+    call get_line
+    mov %rax, %r13
+    jmp exec_line
 
 
     .globl statement_gosub

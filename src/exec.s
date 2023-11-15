@@ -43,6 +43,8 @@ get_line: /* %rdi: target line num, throws US */
     mov $code_head, %edi
     call line_slot
     ldaddr (%eax), cx
+    cmpw $0, %cx
+    error je, US
     xor %eax, %eax
     movw -4(%ecx), %ax /* ax = line number of next line */
     cmp %edx, %eax
