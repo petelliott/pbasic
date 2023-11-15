@@ -31,11 +31,23 @@ error_handler: /* error_handler(errorcode: %edi) */
     pop %rdi
     mov $error_str, %edi
     call write_string
+    cmp $end, %r13
+    jl 0f
+    /* we are in a line, so print the line number */
+    mov $in_str, %edi
+    call write_string
+    xor %eax, %eax
+    get_linenumber %ax
+    mov %eax, %edi
+    call write_uint
+0:
+    call newline
     jmp repl_not_ok /* resume the repl */
 
 
     .data
-error_str:  .asciz " ERROR\n"
+error_str:  .asciz " ERROR"
+in_str:     .asciz " IN "
 
     .macro error_code name,c1,c2
     .globl \name
