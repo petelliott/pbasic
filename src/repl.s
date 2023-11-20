@@ -171,6 +171,32 @@ var_case:
     mov $0b, %edi /* target if al is alphanum */
     mov $2f, %esi /* target otherwise */
     jmp jmp_alphanum
+7: /* variable hasn't been defined, but we are in command mode, so allocate a variable slot on the heap */
+    lea (%r15), %eax
+    movw %ax, (%ecx)
+    mov %eax, %ecx /* increment our linked list after insert */
+    xor %eax, %eax
+    movw %ax, (%r15) /* add next link */
+    movl %eax, 2(%r15) /* add variable content */
+    add $6, %r15
+    /* BEGIN JANK */
+4:
+    movb (%r10), %al
+    mov $5f, %edi
+    mov $6f, %esi
+    jmp jmp_alphanum
+5:
+    movb %al, (%r15)
+    inc %r10
+    inc %r15
+    jmp 4b
+6:
+    movb $0, (%r15) /* nul terminate the var string */
+    inc %r15
+    /* END JANK */
+    mov %r10, %r8
+    inc %r8 /* setup a fake %r8 */
+    /* fall through to variable defined case */
 2: /* variable has already been defined */
     dec %r8
     mov %r8, %r10 /* set linebuffer to new value */
@@ -180,6 +206,8 @@ var_case:
     add $3, %ebx
     jmp process_tokens
 3: /* variable hasn't already been defined, create it */
+    test %r13, %r13
+    jnz 7b /* no command to be run (in line mode) */
     movb $token_var_intern, (%ebx)
     lea 1(%ebx), %eax
     movw %ax, (%ecx)
