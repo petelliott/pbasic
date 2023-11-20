@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     /* long running registers:
     %ebx = code target
     %r10 = line buffer position
+    %r13 = execution context
     */
     .text
     .globl repl
@@ -112,6 +113,7 @@ symbol_case:
     jl 1f
     cmpb $'~', %al
     jle 0f
+    jmp 1f
 0:
     inc %r10
     movb %al, (%ebx) /* emit symbols directly */
@@ -148,8 +150,56 @@ word_case:
 3:
 
 var_case:
-    /* TODO */
+    mov $var_head, %ecx /* ecx holds pointer to the next var */
+    /* check if var is already interned */
+0:
+    ldaddr (%ecx), dx
+    test %dx, %dx
+    jz 3f /* intern variable */
+    mov %edx, %ecx
+    add $6, %edx /* edx is the pointer to the interned var string */
+    mov %r10, %r8 /* r8 is the pointer to the new var string */
+1:
+    movb (%edx), %ah
+    movb (%r8), %al
+    inc %r8
+    inc %edx
+    cmpb %al, %ah
+    je 1b
+    cmpb $0, %ah
+    jne 0b
+    mov $0b, %edi /* target if al is alphanum */
+    mov $2f, %esi /* target otherwise */
+    jmp jmp_alphanum
+2: /* variable has already been defined */
+    dec %r8
+    mov %r8, %r10 /* set linebuffer to new value */
+    movb $token_var, (%ebx)
+    add $2, %cx /* move pointer to variable */
+    movw %cx, 1(%ebx)
+    add $3, %ebx
+    jmp process_tokens
+3: /* variable hasn't already been defined, create it */
+    movb $token_var_intern, (%ebx)
+    lea 1(%ebx), %eax
+    movw %ax, (%ecx)
+    xor %eax, %eax
+    movw %ax, 1(%ebx) /* add next link */
+    movl %eax, 3(%ebx) /* add variable content */
+    add $7, %ebx
+4:
+    movb (%r10), %al
+    mov $5f, %edi
+    mov $6f, %esi
+    jmp jmp_alphanum
+5:
+    movb %al, (%ebx)
     inc %r10
+    inc %ebx
+    jmp 4b
+6:
+    movb $0, (%ebx) /* nul terminate the var string */
+    inc %ebx
     jmp process_tokens
 
 run_command:
@@ -182,6 +232,24 @@ repl_get_num:
     jmp 0b
 1:
     ret
+
+jmp_alphanum: /* edi=jump target true alphanum, esi=jump target false */
+    cmpb $'0', %al
+    jl 1f
+    cmpb $'1', %al
+    jle 0f
+    cmpb $'A', %al
+    jl 1f
+    cmpb $'Z', %al
+    jle 0f
+    cmpb $'a', %al
+    jl 1f
+    cmpb $'z', %al
+    jle 0f
+1:
+    jmp *%rsi
+0:
+    jmp *%rdi
 
     .data
 ok_str: .asciz "\n OK\n"

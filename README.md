@@ -50,7 +50,8 @@ lines are translated to the following bytecode to save space and simplify execut
 | char byte | a symbol character like `=`, `,`, `;` etc. |
 | token_num | `token_num` followed by a 4 byte number |
 | token_str | `token_str` followed by a null-terminated ascii string |
-| token_var | TODO |
+| token_var | `token_var` followed by a 2 byte pointer to a 4 byte variable |
+| token_var_intern | `token_var_intern` followed by a 2 byte pointer to the next var, then a 4 byte variable and a null-terminated string of the variable name |
 | token_eof | the end of a line |
 
 

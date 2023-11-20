@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl line_buffer
     .globl exec_buffer
     .globl code_head
+    .globl var_head
 exec_buffer_feilds:
     .skip 4
 exec_buffer:
@@ -30,4 +31,6 @@ line_buffer:
 
     .align 2
 code_head:
+    .skip 2
+var_head:
     .skip 2

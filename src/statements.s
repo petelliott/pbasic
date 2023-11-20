@@ -58,7 +58,24 @@ statement_input:
 
     .globl statement_let
 statement_let:
-    jmp unsupported_statement
+    mov %edi, %ebx
+    inc %ebx
+    movb (%ebx), %al
+    cmpb $token_var, %al
+    je 0f
+    cmpb $token_var_intern, %al
+    error jne, SN
+0:
+    inc %ebx
+    call read_var /* eax is ptr to var */
+    cmpb $'=', (%ebx)
+    error jne, SN
+    inc %ebx
+    cmpb $token_num, (%ebx)
+    error jne, SN
+    movl 1(%ebx), %ecx
+    movl %ecx, (%eax)
+    jmp exec_next_line
 
 
     .globl statement_print
@@ -76,6 +93,10 @@ statement_print:
     je print_comma
     cmpb $';', %al
     je print_semicolon
+    cmpb $token_var_intern, %al
+    je print_var
+    cmpb $token_var, %al
+    je print_var
     cmpb $token_eof, %al
     je 1f
     error jmp, SN
@@ -102,6 +123,11 @@ print_semicolon:
     movb (%ebx), %al
     cmpb $token_eof, %al
     je 2f
+    jmp 0b
+print_var:
+    call read_var
+    mov (%eax), %edi
+    call write_int
     jmp 0b
 1:
     call newline
@@ -153,6 +179,24 @@ statement_load:
     .globl statement_save
 statement_save:
     jmp unsupported_statement
+
+
+read_var: /* %ebx=the line pointer+1, %al=the opcode, returns pointer to rvar in eax */
+    cmpb $token_var_intern, %al
+    je 0f
+    /* var case */
+    ldaddr (%ebx), ax
+    add $2, %ebx
+    ret
+0:  /* intern case */
+    lea 2(%ebx), %eax
+    add $6, %ebx
+1:
+    mov (%ebx), %cl
+    inc %ebx
+    cmpb $0, %cl
+    jne 1b
+    ret
 
 
     /* TODO: remove this once all statements are supported, or handle with the error mechanism */
