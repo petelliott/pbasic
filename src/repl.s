@@ -40,7 +40,9 @@ parse_line_num:
     isnotdig %al, process_tokens
     xor %r13, %r13 /* zero the exec context to signal that we are adding a line */
     mov %r15, %rbx
-    call repl_get_num /* eax = line number */
+    mov %r10, %rdi
+    call atoi /* eax = line number */
+    mov %rdi, %r10
     movw %ax, (%ebx)
     add $4, %ebx /* allocate space for line number and nextptr */
     mov %ebx, %edi
@@ -65,7 +67,9 @@ whitespace_case:
 
 number_case:
     isnotdig %al, 0f
-    call repl_get_num
+    mov %r10, %rdi
+    call atoi /* eax = line number */
+    mov %rdi, %r10
     movb $token_num, (%ebx)
     inc %ebx
     mov %eax, (%ebx)
@@ -246,20 +250,6 @@ enter_line:
     jmp repl_not_ok
     /* END repl (no ret because the repl doesn't return) */
 
-repl_get_num:
-    xor %eax, %eax /* eax is the number */
-    xor %ecx, %ecx
-    mov $10, %edi
-0:
-    movb (%r10), %cl /* cl is one char */
-    isnotdig %cl, 1f
-    sub $'0', %cl
-    mul %edi
-    add %ecx, %eax
-    inc %r10
-    jmp 0b
-1:
-    ret
 
 jmp_alphanum: /* edi=jump target true alphanum, esi=jump target false */
     cmpb $'0', %al

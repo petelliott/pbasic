@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+    .include "macros.s"
+
     .text
     .globl strlen
 strlen: /* strlen(string %rdi) -> len %rax */
@@ -78,3 +80,21 @@ p10above:
 newline:
     mov $'\n', %rdi
     jmp write_char /* tail call to write char */
+
+    .global atoi
+    /* reads a number from string %edi, stops when %edi is non-numeric,
+       %eax is the number, %edi points to the end of the string */
+atoi:
+    xor %eax, %eax /* eax is the number */
+    xor %ecx, %ecx
+    mov $10, %esi
+0:
+    movb (%edi), %cl /* cl is one char */
+    isnotdig %cl, 1f
+    sub $'0', %cl
+    mul %esi
+    add %ecx, %eax
+    inc %edi
+    jmp 0b
+1:
+    ret
