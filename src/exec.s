@@ -22,11 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl exec_line
 exec_next_line:
     get_nextline ax
-    cmpw $0, %ax
-    je repl /* return to repl if we're at the end of the code */
     mov %rax, %r13
     /* intentional fallthrough */
 exec_line:
+    mov %r13, %rax
+    cmpw $0, %ax
+    je repl /* return to repl if we're at the end of the code */
     xor %ecx, %ecx
     movb (%r13), %cl
     ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
