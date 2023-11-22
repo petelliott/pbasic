@@ -52,7 +52,45 @@ statement_if:
 
     .globl statement_input
 statement_input:
-    jmp unsupported_statement
+    cmp $end, %ebx
+    error jl, ID /* can't use input as a direct */
+
+    mov $'?', %edi
+    call write_char
+
+    call read_line
+    mov %eax, %edi
+    mov $exec_buffer, %esi
+    call tokenize
+
+    inc %ebx
+    mov $exec_buffer, %edx /* edx=tokenized input */
+0:
+    movb (%ebx), %al
+    cmpb $token_var, %al
+    je 1f
+    cmpb $token_var_intern, %al
+    error jne, SN
+1:
+    inc %ebx
+    call read_var /* eax=pointer to var */
+
+    movb (%edx), %cl
+    cmpb $token_num, %cl
+    error jne, SN
+    inc %edx
+    movl (%edx), %ecx
+    add $5, %edx /* skip the comma too */
+
+    mov %ecx, (%eax) /* set the variable */
+
+    inc %ebx /* skip potential comma */
+    movb -1(%ebx), %al
+    cmpb $',', %al
+    je 0b
+    cmpb $token_eof, %al
+    error jne, SN
+    jmp exec_next_line
 
 
     .globl statement_let

@@ -57,3 +57,4 @@ in_str:     .asciz " IN "
     error_code OM, 'O, 'M
     error_code SN, 'S, 'N
     error_code US, 'U, 'S
+    error_code ID, 'I, 'D
