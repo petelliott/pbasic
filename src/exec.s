@@ -31,7 +31,7 @@ exec_line:
     xor %ecx, %ecx
     movb (%r13), %cl
     ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
-    mov %r13, %rdi /* provide a mutable r13 in edi */
+    mov %r13, %rbx /* provide a mutable r13 in ebx */
     jmp *%rax /* call the statement handler */
 
 

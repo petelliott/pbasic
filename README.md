@@ -66,7 +66,7 @@ encodings.
 | register | special purpose   | saved by |
 |----------|-------------------|----------|
 | RAX      |                   | caller   |
-| RBX      |                   | callee   |
+| RBX      | reserved for statements | callee   |
 | RCX      | arg3              | caller   |
 | RDX      | arg2              | caller   |
 | RBP      | base pointer      | callee   |

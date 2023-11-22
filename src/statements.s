@@ -26,14 +26,13 @@ statement_end:
 
     .globl statement_goto
 statement_goto:
-    mov %edi, %eax
-    inc %eax
-    cmpb $token_num, (%eax)
+    inc %ebx
+    cmpb $token_num, (%ebx)
     error jne, SN
-    inc %eax
-    movl (%eax), %ecx
-    add $4, %eax
-    cmpb $token_eof, (%eax)
+    inc %ebx
+    movl (%ebx), %ecx
+    add $4, %ebx
+    cmpb $token_eof, (%ebx)
     error jne, SN
     mov %ecx, %edi
     call get_line
@@ -58,7 +57,6 @@ statement_input:
 
     .globl statement_let
 statement_let:
-    mov %edi, %ebx
     inc %ebx
     movb (%ebx), %al
     cmpb $token_var, %al
@@ -80,7 +78,6 @@ statement_let:
 
     .globl statement_print
 statement_print:
-    mov %edi, %ebx
     inc %ebx
 0:
     movb (%ebx), %al
