@@ -18,42 +18,79 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .include "macros.s"
 
 
-    /* long running registers:
-    %ebx = code target
-    %r10 = line buffer position
-    %r13 = execution context
-    */
     .text
     .globl repl
     .globl repl_not_ok
 repl:
-    mov $ok_str, %rdi
+    .set input, %r12
+    .set output, %r14
+
+    mov $ok_str, %edi
     call write_string
 repl_not_ok:
     call read_line /* eax is a pointer to a line buffer that we can mess with */
-    mov $exec_buffer, %ebx  /* ebx is the address we will begin writing tokenized code */
-    mov %rbx, %r13 /* set execution context */
-    mov %rax, %r10 /* r10 holds the line buffer long term */
+    mov %rax, input /* input line pointer */
+    mov $exec_buffer, output /* output code pointer */
+    mov output, %r13 /* set execution context */
 
 parse_line_num:
-    movb (%r10), %al
+    movb (input), %al
     isnotdig %al, process_tokens
     xor %r13, %r13 /* zero the exec context to signal that we are adding a line */
-    mov %r15, %rbx
-    mov %r10, %rdi
-    call atoi /* eax = line number */
-    mov %rdi, %r10
-    movw %ax, (%ebx)
-    add $4, %ebx /* allocate space for line number and nextptr */
-    mov %ebx, %edi
+    mov %r15, output /* set output code pointer to heap end */
+    mov input, %rdi
+    call atoi /* eax = line number, edi preserved string pointer */
+    mov %rdi, input
+    movw %ax, (output)
+    add $4, output /* allocate space for line number and nextptr */
+    mov output, %rdi
     mov %eax, %esi
     call insert_line
 
 process_tokens:
+    mov input, %rdi
+    mov output, %rsi
+    call tokenize
+    .set input, %edi
+    .set output, %esi
+    .set outputq, %rsi
+
+run_command:
+    movb $token_eof, (output) /* terminate line */
+    inc output
+    test %r13, %r13
+    jz 0f /* no command to be run (in line mode) */
+    cmpb $statement_table_length, (%r13)
+    error jg, SN
+    xor %eax, %eax
+    set_nextline %ax
+    jmp exec_line
+0:
+    mov outputq, %r15 /* skip the heap we've allocated */
+    jmp repl_not_ok
+    /* END repl (no ret because the repl doesn't return) */
+
+
+    .globl tokenize
+tokenize: /* edi: input string, %esi: output token string */
+    .set input, %r12
+    .set output, %r14
+
+    push input
+    push output
+    mov %rdi, input
+    mov %rsi, output
+token_loop:
     /* handle eof */
-    movb (%r10), %al
+    movb (input), %al
     cmpb $0, %al
-    je run_command
+    jne 0f
+    mov input, %rdi
+    mov output, %rsi
+    pop output
+    pop input
+    ret
+0:
 
 whitespace_case:
     cmpb $' ', %al
@@ -61,42 +98,42 @@ whitespace_case:
     cmpb $'\n', %al
     jne 1f
 0:
-    inc %r10
-    jmp process_tokens
+    inc input
+    jmp token_loop
 1:
 
 number_case:
     isnotdig %al, 0f
-    mov %r10, %rdi
+    mov input, %rdi
     call atoi /* eax = line number */
-    mov %rdi, %r10
-    movb $token_num, (%ebx)
-    inc %ebx
-    mov %eax, (%ebx)
-    add $4, %ebx
-    jmp process_tokens
+    mov %rdi, input
+    movb $token_num, (output)
+    inc output
+    mov %eax, (output)
+    add $4, output
+    jmp token_loop
 0:
 
 string_case:
     cmpb $'\"', %al
     jne 2f
-    movb $token_str, (%ebx) /* emit the str byte */
-    inc %ebx
+    movb $token_str, (output) /* emit the str byte */
+    inc output
 0:
-    inc %r10
-    movb (%r10), %al /* read a byte */
+    inc input
+    movb (input), %al /* read a byte */
     cmpb $0, %al
     error je, SN
     cmpb $'\"', %al
     je 1f
-    movb %al, (%ebx) /* emit the str byte */
-    inc %ebx
+    movb %al, (output) /* emit the str byte */
+    inc output
     jmp 0b
 1:
-    inc %r10
-    movb $0, (%ebx)
-    inc %ebx
-    jmp process_tokens
+    inc input
+    movb $0, (output)
+    inc output
+    jmp token_loop
 2:
 
 symbol_case:
@@ -119,10 +156,10 @@ symbol_case:
     jle 0f
     jmp 1f
 0:
-    inc %r10
-    movb %al, (%ebx) /* emit symbols directly */
-    inc %ebx
-    jmp process_tokens
+    inc input
+    movb %al, (output) /* emit symbols directly */
+    inc output
+    jmp token_loop
 1:
 
 word_case:
@@ -132,7 +169,7 @@ word_case:
     inc %ecx
     cmp $word_table_length, %ecx
     je 3f
-    mov %r10, %rdi              /* rdi=mutable string ptr for compare */
+    mov input, %rdi              /* rdi=mutable string ptr for compare */
     ldaddr_tbl word_table, %ecx, ax /* load extended address into eax */
     mov %eax, %esi              /* rsi=current word in table */
     /* string compare */
@@ -147,10 +184,10 @@ word_case:
     inc %edi
     jmp 1b
 2:
-    movb %cl, (%ebx) /* emit encoded byte */
-    inc %ebx
-    mov %rdi, %r10
-    jmp process_tokens
+    movb %cl, (output) /* emit encoded byte */
+    inc output
+    mov %rdi, input
+    jmp token_loop
 3:
 
 var_case:
@@ -162,7 +199,7 @@ var_case:
     jz 3f /* intern variable */
     mov %edx, %ecx
     add $6, %edx /* edx is the pointer to the interned var string */
-    mov %r10, %r8 /* r8 is the pointer to the new var string */
+    mov input, %r8 /* r8 is the pointer to the new var string */
 1:
     movb (%edx), %ah
     movb (%r8), %al
@@ -185,70 +222,55 @@ var_case:
     add $6, %r15
     /* BEGIN JANK */
 4:
-    movb (%r10), %al
+    movb (input), %al
     mov $5f, %edi
     mov $6f, %esi
     jmp jmp_alphanum
 5:
     movb %al, (%r15)
-    inc %r10
+    inc input
     inc %r15
     jmp 4b
 6:
     movb $0, (%r15) /* nul terminate the var string */
     inc %r15
     /* END JANK */
-    mov %r10, %r8
+    mov input, %r8
     inc %r8 /* setup a fake %r8 */
     /* fall through to variable defined case */
 2: /* variable has already been defined */
     dec %r8
-    mov %r8, %r10 /* set linebuffer to new value */
-    movb $token_var, (%ebx)
+    mov %r8, input /* set linebuffer to new value */
+    movb $token_var, (output)
     add $2, %cx /* move pointer to variable */
-    movw %cx, 1(%ebx)
-    add $3, %ebx
+    movw %cx, 1(output)
+    add $3, output
     jmp process_tokens
 3: /* variable hasn't already been defined, create it */
     test %r13, %r13
     jnz 7b /* no command to be run (in line mode) */
-    movb $token_var_intern, (%ebx)
-    lea 1(%ebx), %eax
+    movb $token_var_intern, (output)
+    lea 1(output), %eax
     movw %ax, (%ecx)
     xor %eax, %eax
-    movw %ax, 1(%ebx) /* add next link */
-    movl %eax, 3(%ebx) /* add variable content */
-    add $7, %ebx
+    movw %ax, 1(output) /* add next link */
+    movl %eax, 3(output) /* add variable content */
+    add $7, output
 4:
-    movb (%r10), %al
+    movb (input), %al
     mov $5f, %edi
     mov $6f, %esi
     jmp jmp_alphanum
 5:
-    movb %al, (%ebx)
-    inc %r10
-    inc %ebx
+    movb %al, (output)
+    inc input
+    inc output
     jmp 4b
 6:
-    movb $0, (%ebx) /* nul terminate the var string */
-    inc %ebx
-    jmp process_tokens
+    movb $0, (output) /* nul terminate the var string */
+    inc output
+    jmp token_loop
 
-run_command:
-    movb $token_eof, (%ebx) /* terminate line */
-    inc %ebx
-    test %r13, %r13
-    jz enter_line /* no command to be run (in line mode) */
-    cmpb $statement_table_length, (%r13)
-    error jg, SN
-    xor %eax, %eax
-    set_nextline %ax
-    jmp exec_line
-
-enter_line:
-    mov %rbx, %r15 /* skip the heap we've allocated */
-    jmp repl_not_ok
-    /* END repl (no ret because the repl doesn't return) */
 
 
 jmp_alphanum: /* edi=jump target true alphanum, esi=jump target false */
