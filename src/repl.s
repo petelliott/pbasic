@@ -63,7 +63,7 @@ run_command:
     cmpb $statement_table_length, (%r13)
     error jg, SN
     xor %eax, %eax
-    set_nextline %ax
+    set_nextline %ax, %r13
     jmp exec_line
 0:
     mov outputq, %r15 /* skip the heap we've allocated */

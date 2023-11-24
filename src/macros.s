@@ -43,19 +43,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     \jump error_handler
     .endm
 
-    .macro get_linenumber reg
-    movw -4(%r13), \reg
+    .macro get_linenumber src, dst
+    movw -4(\src), \dst
     .endm
 
-    .macro set_linenumber reg
-    movw \reg, -4(%r13)
+    .macro set_linenumber src, dst
+    movw \src, -4(\dst)
     .endm
 
-    .macro get_nextline reg
-    mov $page_start, %e\reg
-    movw -2(%r13), %\reg
+    .macro get_nextline src, dst
+    mov $page_start, %e\dst
+    movw -2(\src), %\dst
     .endm
 
-    .macro set_nextline reg
-    movw \reg, -2(%r13)
+    .macro set_nextline src, dst
+    movw \src, -2(\dst)
     .endm

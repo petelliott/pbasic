@@ -191,7 +191,8 @@ statement_clear:
 
     .globl statement_list
 statement_list:
-    jmp unsupported_statement
+    call list
+    jmp exec_next_line
 
 
     .globl statement_run
@@ -216,6 +217,7 @@ statement_save:
     jmp unsupported_statement
 
 
+    .globl read_var
 read_var: /* %ebx=the line pointer+1, %al=the opcode, returns pointer to rvar in eax */
     cmpb $token_var_intern, %al
     je 0f

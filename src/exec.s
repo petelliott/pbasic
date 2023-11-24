@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl exec_next_line
     .globl exec_line
 exec_next_line:
-    get_nextline ax
+    get_nextline %r13, ax
     mov %rax, %r13
     /* intentional fallthrough */
 exec_line:

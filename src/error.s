@@ -37,7 +37,7 @@ error_handler: /* error_handler(errorcode: %edi) */
     mov $in_str, %edi
     call write_string
     xor %eax, %eax
-    get_linenumber %ax
+    get_linenumber %r13, %ax
     mov %eax, %edi
     call write_uint
 0:

@@ -81,6 +81,11 @@ newline:
     mov $'\n', %rdi
     jmp write_char /* tail call to write char */
 
+    .globl space
+space:
+    mov $' ', %rdi
+    jmp write_char /* tail call to write char */
+
     .global atoi
     /* reads a number from string %edi, stops when %edi is non-numeric,
        %eax is the number, %edi points to the end of the string */
