@@ -25,10 +25,11 @@ list: /* no args */
     mov %rax, %r10
 list_line:
     cmpw $0, %ax
-    je end
-    xor %eax, %eax
-    get_linenumber %r10, %ax
-    mov %eax, %edi
+    jne 0f
+    ret
+0:
+    xor %edi, %edi
+    get_linenumber %r10, %di
     call write_uint
     call space
 
@@ -55,8 +56,7 @@ letter_case:
     call write_char
     jmp token_loop
 word_case:
-    ldaddr_tbl word_table, %eax, cx
-    mov %ecx, %edi
+    ldaddr_tbl word_table, %eax, di
     call write_string
     call space
     jmp token_loop
@@ -66,18 +66,14 @@ num_case:
     call write_int
     jmp token_loop
 str_case:
-    mov $'\"', %edi
+    mov $'\"', %dil
     call write_char
     mov %ebx, %edi
     call write_string
+    add %eax, %ebx
+    inc %ebx        /* skip the string */
 
-0: /* skip the string */
-    movb (%ebx), %al
-    inc %ebx
-    cmpb $0, %al
-    jne 0b
-
-    mov $'\"', %edi
+    mov $'\"', %dil
     call write_char
     jmp token_loop
 var_case:
@@ -94,5 +90,3 @@ next:
     get_nextline %r10, ax
     mov %rax, %r10
     jmp list_line
-end:
-    ret

@@ -30,7 +30,7 @@ read_line:                      /* read_line() -> ptr */
 
     .globl write_string
     .globl write_string_n
-write_string:                   /* write_string(string %rdi) */
+write_string:                   /* write_string(string %rdi) -> number of bytes written */
     push %rdi
     call strlen
     pop %rdi
@@ -39,7 +39,7 @@ write_string:                   /* write_string(string %rdi) */
 write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
     mov %esi, %edx              /* count */
     mov %edi, %esi              /* string */
-    xor %edi,%edi
+    xor %edi, %edi
     inc %edi                    /* STDOUT_FILENO=1 */
     mov %edi, %eax              /* SYS_WRITE=1 */
     syscall

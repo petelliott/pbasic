@@ -24,7 +24,7 @@ error_handler: /* error_handler(errorcode: %edi) */
     mov $(page_start + 4096), %esp /* reset the stack */
     push %rdi
     call newline
-    mov $' ', %edi
+    mov $' ', %dil
     call write_char
     mov %esp, %edi
     call write_string
@@ -36,9 +36,8 @@ error_handler: /* error_handler(errorcode: %edi) */
     /* we are in a line, so print the line number */
     mov $in_str, %edi
     call write_string
-    xor %eax, %eax
-    get_linenumber %r13, %ax
-    mov %eax, %edi
+    xor %edi, %edi
+    get_linenumber %r13, %di
     call write_uint
 0:
     call newline

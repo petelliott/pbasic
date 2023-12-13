@@ -62,8 +62,7 @@ run_command:
     jz 0f /* no command to be run (in line mode) */
     cmpb $statement_table_length, (%r13)
     error jg, SN
-    xor %eax, %eax
-    set_nextline %ax, %r13
+    set_nextline $0, %r13
     jmp exec_line
 0:
     mov outputq, %r15 /* skip the heap we've allocated */
@@ -137,24 +136,10 @@ string_case:
 2:
 
 symbol_case:
-    /* handwritten ispunct */
-    cmpb $'!', %al
-    jl 1f
-    cmpb $'/', %al
-    jle 0f
-    cmpb $':', %al
-    jl 1f
-    cmpb $'@', %al
-    jle 0f
-    cmpb $'[', %al
-    jl 1f
-    cmpb $'`', %al
-    jle 0f
-    cmpb $'{', %al
-    jl 1f
-    cmpb $'~', %al
-    jle 0f
-    jmp 1f
+    /* whitespace is already handled */
+    mov $1f, %edi
+    mov $0f, %esi
+    jmp jmp_alphanum
 0:
     inc input
     movb %al, (output) /* emit symbols directly */
@@ -170,8 +155,7 @@ word_case:
     cmp $word_table_length, %ecx
     je 3f
     mov input, %rdi              /* rdi=mutable string ptr for compare */
-    ldaddr_tbl word_table, %ecx, ax /* load extended address into eax */
-    mov %eax, %esi              /* rsi=current word in table */
+    ldaddr_tbl word_table, %ecx, si /* load extended address into esi */
     /* string compare */
 1:
     xor %eax, %eax
@@ -193,83 +177,76 @@ word_case:
 var_case:
     mov $var_head, %ecx /* ecx holds pointer to the next var */
     /* check if var is already interned */
-0:
+check_intern_loop:
     ldaddr (%ecx), dx
     test %dx, %dx
-    jz 3f /* intern variable */
+    jz create_variable /* intern variable */
     mov %edx, %ecx
     add $6, %edx /* edx is the pointer to the interned var string */
     mov input, %r8 /* r8 is the pointer to the new var string */
-1:
+varname_strcmp:
     movb (%edx), %ah
     movb (%r8), %al
     inc %r8
     inc %edx
     cmpb %al, %ah
-    je 1b
+    je varname_strcmp
     cmpb $0, %ah
-    jne 0b
-    mov $0b, %edi /* target if al is alphanum */
-    mov $2f, %esi /* target otherwise */
+    jne check_intern_loop
+    mov $check_intern_loop, %edi /* target if al is alphanum */
+    mov $var_defined, %esi /* target otherwise */
     jmp jmp_alphanum
-7: /* variable hasn't been defined, but we are in command mode, so allocate a variable slot on the heap */
-    lea (%r15), %eax
-    movw %ax, (%ecx)
-    mov %eax, %ecx /* increment our linked list after insert */
-    xor %eax, %eax
-    movw %ax, (%r15) /* add next link */
-    movl %eax, 2(%r15) /* add variable content */
-    add $6, %r15
-    /* BEGIN JANK */
-4:
-    movb (input), %al
-    mov $5f, %edi
-    mov $6f, %esi
-    jmp jmp_alphanum
-5:
-    movb %al, (%r15)
-    inc input
-    inc %r15
-    jmp 4b
-6:
-    movb $0, (%r15) /* nul terminate the var string */
-    inc %r15
-    /* END JANK */
+
+create_variable: /* variable hasn't already been defined, create it */
+    test %r13, %r13
+    jnz command_mode_create_variable /* no command to be run (in line mode) */
+    movb $token_var_intern, (output)
+    inc output
+    mov output, %rdi
+    call push_var_entry
+    mov %rdi, output
+    jmp token_loop
+
+command_mode_create_variable: /* variable hasn't been defined, but we are in command mode, so allocate a variable slot on the heap */
+    mov %r15, %rdi
+    call push_var_entry
+    mov %rdi, %r15
     mov input, %r8
     inc %r8 /* setup a fake %r8 */
     /* fall through to variable defined case */
-2: /* variable has already been defined */
+var_defined: /* variable has already been defined */
     dec %r8
     mov %r8, input /* set linebuffer to new value */
     movb $token_var, (output)
     add $2, %cx /* move pointer to variable */
     movw %cx, 1(output)
     add $3, output
-    jmp process_tokens
-3: /* variable hasn't already been defined, create it */
-    test %r13, %r13
-    jnz 7b /* no command to be run (in line mode) */
-    movb $token_var_intern, (output)
-    lea 1(output), %eax
-    movw %ax, (%ecx)
-    xor %eax, %eax
-    movw %ax, 1(output) /* add next link */
-    movl %eax, 3(output) /* add variable content */
-    add $7, output
-4:
-    movb (input), %al
-    mov $5f, %edi
-    mov $6f, %esi
-    jmp jmp_alphanum
-5:
-    movb %al, (output)
-    inc input
-    inc output
-    jmp 4b
-6:
-    movb $0, (output) /* nul terminate the var string */
-    inc output
     jmp token_loop
+
+
+push_var_entry:  /* edi=destination to write entry, inherits ecx, input, output */
+    mov %di, (%ecx)
+    mov %edi, %ecx
+    xor %eax, %eax
+    movw %ax, (%edi) /* add next link */
+    movl %eax, 2(%edi) /* add variable content */
+    add $6, %edi
+    mov %rdi, %r9
+0:
+    movb (input), %al
+    mov $1f, %edi
+    mov $2f, %esi
+    jmp jmp_alphanum
+1:
+    movb %al, (%r9)
+    inc input
+    inc %r9
+    jmp 0b
+2:
+    mov %r9, %rdi
+    movb $0, (%edi) /* nul terminate the var string */
+    inc %edi
+    ret
 
 
 
@@ -278,10 +255,7 @@ jmp_alphanum: /* edi=jump target true alphanum, esi=jump target false */
     jl 1f
     cmpb $'1', %al
     jle 0f
-    cmpb $'A', %al
-    jl 1f
-    cmpb $'Z', %al
-    jle 0f
+    or $0x20, %al /* remove clear lowercase bit */
     cmpb $'a', %al
     jl 1f
     cmpb $'z', %al

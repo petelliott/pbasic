@@ -37,7 +37,7 @@ write_int:
     test %edi, %edi
     jns write_uint
     push %rdi
-    mov $'-', %edi
+    mov $'-', %dil
     call write_char
     pop %rdi
     neg %edi
@@ -78,12 +78,12 @@ p10above:
 
     .globl newline
 newline:
-    mov $'\n', %rdi
+    movb $'\n', %dil
     jmp write_char /* tail call to write char */
 
     .globl space
 space:
-    mov $' ', %rdi
+    movb $' ', %dil
     jmp write_char /* tail call to write char */
 
     .global atoi
@@ -91,7 +91,6 @@ space:
        %eax is the number, %edi points to the end of the string */
 atoi:
     xor %eax, %eax /* eax is the number */
-    xor %ecx, %ecx
     mov $10, %esi
 0:
     movb (%edi), %cl /* cl is one char */

@@ -55,7 +55,7 @@ statement_input:
     cmp $end, %ebx
     error jl, ID /* can't use input as a direct */
 
-    mov $'?', %edi
+    movb $'?', %dil
     call write_char
 
     call read_line

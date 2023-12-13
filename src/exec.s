@@ -23,10 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 exec_next_line:
     get_nextline %r13, ax
     mov %rax, %r13
-    /* intentional fallthrough */
 exec_line:
     mov %r13, %rax
-    cmpw $0, %ax
+    test %ax, %ax
     je repl /* return to repl if we're at the end of the code */
     xor %ecx, %ecx
     movb (%r13), %cl
@@ -43,14 +42,13 @@ get_line: /* %rdi: target line num, throws US */
     mov %edi, %esi
     mov $code_head, %edi
     call line_slot
-    ldaddr (%eax), cx
-    cmpw $0, %cx
+    ldaddr (%edi), ax
+    test %ax, %ax
     error je, US
-    xor %eax, %eax
-    movw -4(%ecx), %ax /* ax = line number of next line */
-    cmp %edx, %eax
+    xor %ecx, %ecx
+    movw -4(%eax), %cx /* cx = line number of next line */
+    cmp %edx, %ecx
     error jne, US
-    mov %ecx, %eax
     ret
 
     .globl insert_line
@@ -58,22 +56,20 @@ insert_line: /* %rdi: line ptr, %rsi, target line */
     mov %edi, %edx
     mov $code_head, %edi
     call line_slot
-    ldaddr (%eax), cx
-    cmpw $0, %cx
+    ldaddr (%edi), cx
+    test %cx, %cx
     je 0f
-    xchg %esi, %eax /* esi hasn't been clobbered */
-    cmpw -4(%ecx), %ax
-    xchg %esi, %eax /* esi hasn't been clobbered */
+    cmpw -4(%ecx), %si
     jne 0f
     /* overwrite, since lines are equal */
     movw -2(%ecx), %cx
 0:
     /* insert the line */
-    movw %dx, (%eax)
+    movw %dx, (%edi)
     movw %cx, -2(%edx)
     ret
 
-line_slot: /* rdi: double pointer to code head, rsi: target line num */
+line_slot: /* rdi: double pointer to code head, rsi: target line num, returns the slot in edi */
     cmpw $0, (%edi)
     je 0f
     ldaddr (%edi), cx
@@ -85,5 +81,4 @@ line_slot: /* rdi: double pointer to code head, rsi: target line num */
     mov %ecx, %edi
     jmp line_slot
 0:
-    mov %edi, %eax
     ret
