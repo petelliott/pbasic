@@ -22,13 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl exec_buffer
     .globl code_head
     .globl var_head
+    .globl op_stack
 exec_buffer_feilds:
     .skip 4
 exec_buffer:
     .skip 24
 line_buffer:
     .skip 80
-
+    .skip 6
+op_stack:
     .align 2
 code_head:
     .skip 2

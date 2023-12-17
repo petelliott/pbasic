@@ -42,6 +42,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .macro words mac
     statements \mac
     \mac then
+    /* these are done manually */
+    /*\mac <>
+    \mac <=
+    \mac >=*/
     .endm
 
     .data
@@ -51,6 +55,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .endm
 
 words strings
+str_ne: .asciz "<>"
+str_le: .asciz "<="
+str_ge: .asciz ">="
 
     .macro wt_entry name
     .2byte str_\name - page_start
@@ -62,8 +69,16 @@ words strings
     .align 2
 word_table:
     words wt_entry
+word_ne_addr:   .2byte str_ne - page_start
+word_le_addr:   .2byte str_le - page_start
+word_ge_addr:  .2byte str_ge - page_start
 word_table_end:
     .set word_table_length, (word_table_end-word_table)/2
+
+    .globl word_ne, word_le, word_ge
+    .set word_ne, (word_ne_addr - word_table)
+    .set word_le, (word_le_addr - word_table)
+    .set word_ge, (word_ge_addr - word_table)
 
     .macro st_entry name
     .2byte statement_\name - page_start

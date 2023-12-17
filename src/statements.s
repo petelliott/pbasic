@@ -107,10 +107,12 @@ statement_let:
     cmpb $'=', (%ebx)
     error jne, SN
     inc %ebx
-    cmpb $token_num, (%ebx)
+    push %rax
+    call do_expression
+    pop %rcx
+    mov %eax, (%ecx)
+    cmpb $token_eof, (%ebx)
     error jne, SN
-    movl 1(%ebx), %ecx
-    movl %ecx, (%eax)
     jmp exec_next_line
 
 
@@ -119,29 +121,27 @@ statement_print:
     inc %ebx
 0:
     movb (%ebx), %al
-    inc %ebx
-    cmpb $token_num, %al
-    je print_num
     cmpb $token_str, %al
     je print_str
     cmpb $',', %al
     je print_comma
     cmpb $';', %al
     je print_semicolon
-    cmpb $token_var_intern, %al
-    je print_var
-    cmpb $token_var, %al
-    je print_var
     cmpb $token_eof, %al
     je 1f
-    error jmp, SN
-
+print_expr:
+    call do_expression
+    mov %eax, %edi
+    call write_int
+    jmp 0b
 print_num:
+    inc %ebx
     movl (%ebx), %edi
     call write_int
     add $4, %ebx
     jmp 0b
 print_str:
+    inc %ebx
     mov %ebx, %edi
     call write_string
     mov %ebx, %edi
@@ -154,15 +154,11 @@ print_comma:
     call write_char
     /* intentional fallthrough */
 print_semicolon:
+    inc %ebx
     /* special case for trailing newline */
     movb (%ebx), %al
     cmpb $token_eof, %al
     je 2f
-    jmp 0b
-print_var:
-    call read_var
-    mov (%eax), %edi
-    call write_int
     jmp 0b
 1:
     call newline
@@ -215,25 +211,6 @@ statement_load:
     .globl statement_save
 statement_save:
     jmp unsupported_statement
-
-
-    .globl read_var
-read_var: /* %ebx=the line pointer+1, %al=the opcode, returns pointer to rvar in eax */
-    cmpb $token_var_intern, %al
-    je 0f
-    /* var case */
-    ldaddr (%ebx), ax
-    add $2, %ebx
-    ret
-0:  /* intern case */
-    lea 2(%ebx), %eax
-    add $6, %ebx
-1:
-    mov (%ebx), %cl
-    inc %ebx
-    cmpb $0, %cl
-    jne 1b
-    ret
 
 
     /* TODO: remove this once all statements are supported, or handle with the error mechanism */

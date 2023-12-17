@@ -90,6 +90,7 @@ space:
     /* reads a number from string %edi, stops when %edi is non-numeric,
        %eax is the number, %edi points to the end of the string */
 atoi:
+    xor %ecx, %ecx /* clear ecx so we can use cl safely */
     xor %eax, %eax /* eax is the number */
     mov $10, %esi
 0:
