@@ -60,7 +60,10 @@ str_le: .asciz "<="
 str_ge: .asciz ">="
 
     .macro wt_entry name
+    .globl word_\name
+    word_addr_\name:
     .2byte str_\name - page_start
+    .set word_\name, (word_addr_\name - word_table)/2
     .endm
 
     .globl word_table
@@ -71,14 +74,15 @@ word_table:
     words wt_entry
 word_ne_addr:   .2byte str_ne - page_start
 word_le_addr:   .2byte str_le - page_start
-word_ge_addr:  .2byte str_ge - page_start
+word_ge_addr:   .2byte str_ge - page_start
+
 word_table_end:
     .set word_table_length, (word_table_end-word_table)/2
 
     .globl word_ne, word_le, word_ge
-    .set word_ne, (word_ne_addr - word_table)
-    .set word_le, (word_le_addr - word_table)
-    .set word_ge, (word_ge_addr - word_table)
+    .set word_ne, (word_ne_addr - word_table)/2
+    .set word_le, (word_le_addr - word_table)/2
+    .set word_ge, (word_ge_addr - word_table)/2
 
     .macro st_entry name
     .2byte statement_\name - page_start

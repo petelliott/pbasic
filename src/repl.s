@@ -135,18 +135,6 @@ string_case:
     jmp token_loop
 2:
 
-symbol_case:
-    /* whitespace is already handled */
-    mov $1f, %edi
-    mov $0f, %esi
-    jmp jmp_alphanum
-0:
-    inc input
-    movb %al, (output) /* emit symbols directly */
-    inc output
-    jmp token_loop
-1:
-
 word_case:
     xor %ecx, %ecx
     dec %ecx /* current statement index -1 */
@@ -173,6 +161,19 @@ word_case:
     mov %rdi, input
     jmp token_loop
 3:
+
+symbol_case:
+    movb (input), %al
+    /* whitespace is already handled */
+    mov $1f, %edi
+    mov $0f, %esi
+    jmp jmp_alphanum
+0:
+    inc input
+    movb %al, (output) /* emit symbols directly */
+    inc output
+    jmp token_loop
+1:
 
 var_case:
     mov $var_head, %ecx /* ecx holds pointer to the next var */
