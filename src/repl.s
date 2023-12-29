@@ -60,8 +60,6 @@ run_command:
     inc output
     test %r13, %r13
     jz 0f /* no command to be run (in line mode) */
-    cmpb $statement_table_length, (%r13)
-    error jg, SN
     set_nextline $0, %r13
     jmp exec_line
 0:

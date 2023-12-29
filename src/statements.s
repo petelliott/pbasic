@@ -29,6 +29,7 @@ statement_goto:
     inc %ebx
     cmpb $token_num, (%ebx)
     error jne, SN
+internal_goto:
     inc %ebx
     movl (%ebx), %ecx
     add $4, %ebx
@@ -47,7 +48,20 @@ statement_gosub:
 
     .globl statement_if
 statement_if:
-    jmp unsupported_statement
+    inc %ebx
+    call do_expression
+    test %eax, %eax
+    jz exec_next_line /* do nothing if false */
+    movb (%ebx), %al
+    inc %ebx
+    cmpb $word_goto, %al
+    je internal_goto
+    cmpb $word_then, %al
+    error jne, SN
+    movb (%ebx), %al
+    cmpb $token_num, %al
+    je internal_goto
+    jmp exec_midline
 
 
     .globl statement_input

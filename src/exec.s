@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text
     .globl exec_next_line
     .globl exec_line
+    .globl exec_midline
 exec_next_line:
     get_nextline %r13, ax
     mov %rax, %r13
@@ -27,10 +28,13 @@ exec_line:
     mov %r13, %rax
     test %ax, %ax
     je repl /* return to repl if we're at the end of the code */
-    xor %ecx, %ecx
-    movb (%r13), %cl
-    ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
     mov %r13, %rbx /* provide a mutable r13 in ebx */
+exec_midline:
+    xor %ecx, %ecx
+    movb (%ebx), %cl
+    cmpb $statement_table_length, %cl
+    error jge, SN
+    ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
     jmp *%rax /* call the statement handler */
 
 
