@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl code_head
     .globl var_head
     .globl op_stack
+    .globl suppress_repl_output
 exec_buffer_feilds:
     .skip 4
 exec_buffer:
@@ -36,3 +37,5 @@ code_head:
     .skip 2
 var_head:
     .skip 2
+suppress_repl_output:
+    .skip 1

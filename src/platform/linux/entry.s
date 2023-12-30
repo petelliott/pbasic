@@ -30,10 +30,16 @@ _start:
     mov $end, %r15 /* setup r15, the end of our heap */
     movw $0, code_head /* set pointer to first statement to 0 */
     movw $0, var_head /* set pointer to first var to 0 */
+    movb $0, suppress_repl_output
     xor %eax, %eax
-    movl %eax, read_write_fd
+    movl %eax, read_fd
+    inc %eax
+    movl %eax, write_fd
     mov $var_head, %r14 /* set pointer to tail slot of list */
-    jmp repl /* start the repl */
+    call repl /* start the repl */
+    xor %edi, %edi /* zero return code */
+    mov $60, %eax
+    syscall
 
     .data
 bytes_free:   .asciz " bytes free\n"

@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
     .include "macros.s"
 
-
     .text
     .globl repl
     .globl repl_not_ok
@@ -25,10 +24,18 @@ repl:
     .set input, %r12
     .set output, %r14
 
+    cmpb $0, suppress_repl_output
+    jne 0f
     mov $ok_str, %edi
     call write_string
+0:
 repl_not_ok:
     call read_line /* eax is a pointer to a line buffer that we can mess with */
+    movb (%eax), %cl
+    cmpb $0, %cl
+    jne 0f
+    ret /* return on eof */
+0:
     mov %rax, input /* input line pointer */
     mov $exec_buffer, output /* output code pointer */
     mov output, %r13 /* set execution context */

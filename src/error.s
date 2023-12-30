@@ -22,6 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .globl error_handler
 error_handler: /* error_handler(errorcode: %edi) */
     mov $(page_start + 4096), %esp /* reset the stack */
+    movb $0, suppress_repl_output
+    xor %eax, %eax
+    movl %eax, read_fd
+    inc %eax
+    movl %eax, write_fd
+
     push %rdi
     call newline
     mov $' ', %dil

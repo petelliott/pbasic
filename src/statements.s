@@ -219,7 +219,17 @@ statement_new:
 
     .globl statement_load
 statement_load:
-    jmp unsupported_statement
+    cmp $end, %ebx
+    error jge, ID /* must use load as a direct */
+    call setup_open
+    xor %esi, %esi /* open for reading */
+    call open
+    movb $1, suppress_repl_output
+    call repl
+    movb $0, suppress_repl_output
+    xor %edi, %edi /* close for reading */
+    call close
+    jmp repl
 
 
     .globl statement_save
@@ -228,6 +238,7 @@ statement_save:
     mov $1, %esi /* open for writing */
     call open
     call list
+    mov $1, %edi /* close for writing */
     call close
     jmp exec_next_line
 
