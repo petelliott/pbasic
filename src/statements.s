@@ -43,7 +43,8 @@ internal_goto:
 
     .globl statement_gosub
 statement_gosub:
-    jmp unsupported_statement
+    pushw %bx
+    jmp statement_goto
 
 
     .globl statement_if
@@ -179,6 +180,7 @@ print_semicolon:
 2:
     jmp exec_next_line
 
+
     .globl statement_rem
 statement_rem:
     jmp unsupported_statement
@@ -186,7 +188,9 @@ statement_rem:
 
     .globl statement_return
 statement_return:
-    jmp unsupported_statement
+    mov $page_start, %r13
+    popw %r13w
+    jmp exec_next_line
 
 
     .globl statement_stop
