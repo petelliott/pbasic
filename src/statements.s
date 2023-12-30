@@ -183,7 +183,7 @@ print_semicolon:
 
     .globl statement_rem
 statement_rem:
-    jmp unsupported_statement
+    jmp exec_next_line
 
 
     .globl statement_return

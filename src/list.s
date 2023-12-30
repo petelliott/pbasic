@@ -38,6 +38,8 @@ token_loop:
     xor %eax, %eax
     movb (%ebx), %al
     inc %ebx
+    cmpb $word_rem, %al
+    je rem_case
     cmpb $word_table_length, %al
     jl word_case
     cmpb $token_num, %al
@@ -83,6 +85,12 @@ var_intern_case:
     add $4, %edi
     call write_string
     jmp token_loop
+rem_case:
+    ldaddr_tbl word_table, %eax, di
+    call write_string
+    mov %ebx, %edi
+    call write_string
+    jmp next
 
 eof_case:
     call newline

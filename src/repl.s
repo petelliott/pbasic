@@ -89,6 +89,7 @@ token_loop:
     movb (input), %al
     cmpb $0, %al
     jne 0f
+tokenize_return:
     mov input, %rdi
     mov output, %rsi
     pop output
@@ -164,7 +165,20 @@ word_case:
     movb %cl, (output) /* emit encoded byte */
     inc output
     mov %rdi, input
-    jmp token_loop
+    cmpb $word_rem, %cl
+    jne token_loop
+    /* special case tokenizing for rem */
+    movb $token_str, (output)
+    inc output
+4:
+    movb (input), %al
+    inc input
+    movb %al, (output)
+    inc output
+    cmpb $0, %al
+    jne 4b
+    jmp tokenize_return
+    /* end rem special case */
 3:
 
 symbol_case:
