@@ -32,6 +32,8 @@ exec_line:
 exec_midline:
     xor %ecx, %ecx
     movb (%ebx), %cl
+    cmpb $token_eof, %cl
+    je repl
     cmpb $statement_table_length, %cl
     error jge, SN
     ldaddr_tbl statement_table, %ecx, ax /* load extended address into eax */
