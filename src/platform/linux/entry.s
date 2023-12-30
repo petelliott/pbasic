@@ -30,6 +30,8 @@ _start:
     mov $end, %r15 /* setup r15, the end of our heap */
     movw $0, code_head /* set pointer to first statement to 0 */
     movw $0, var_head /* set pointer to first var to 0 */
+    xor %eax, %eax
+    movl %eax, read_write_fd
     mov $var_head, %r14 /* set pointer to tail slot of list */
     jmp repl /* start the repl */
 

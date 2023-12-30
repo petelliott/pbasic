@@ -224,7 +224,21 @@ statement_load:
 
     .globl statement_save
 statement_save:
-    jmp unsupported_statement
+    call setup_open
+    mov $1, %esi /* open for writing */
+    call open
+    call list
+    call close
+    jmp exec_next_line
+
+setup_open:
+    inc %ebx
+    movb (%ebx), %al
+    cmpb $token_str, %al
+    error jne, SN
+    inc %ebx
+    mov %ebx, %edi
+    ret
 
 
     /* TODO: remove this once all statements are supported, or handle with the error mechanism */

@@ -15,18 +15,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+    .data
+    .align 2
+    .globl read_write_fd
+read_write_fd:
+    .zero 4
+
 
     .text
     .globl read_line
 read_line:                      /* read_line() -> ptr */
     xor %eax, %eax              /* SYS_READ=0 */
-    xor %edi, %edi              /* STDIN_FILENO=0 */
+    movl read_write_fd, %edi    /* fd */
     mov $line_buffer, %esi      /* line_buffer */
     mov $80, %edx               /* count */
     syscall
     movb $0, (%esi,%eax)        /* nul terminate */
     mov %esi, %eax
     ret
+
 
     .globl write_string
     .globl write_string_n
@@ -39,9 +46,10 @@ write_string:                   /* write_string(string %rdi) -> number of bytes 
 write_string_n:                 /* write_string_n(string %rdi, len %rsi) */
     mov %esi, %edx              /* count */
     mov %edi, %esi              /* string */
-    xor %edi, %edi
-    inc %edi                    /* STDOUT_FILENO=1 */
-    mov %edi, %eax              /* SYS_WRITE=1 */
+    movl read_write_fd, %edi     /* fd */
+    inc %edi
+    xor %eax, %eax
+    inc %eax                    /* SYS_WRITE=1 */
     syscall
     ret
 
@@ -55,3 +63,24 @@ write_char: /* write_char(ch %rdi) */
     xor %esi, %esi
     inc %esi /* len=1 */
     jmp write_string_n /* tail call */
+
+
+    .globl open
+open: /* open(%rdi: filename, %rsi 0read 1write) */
+    mov %rsi, %r10
+    mov $(2 | 64 | 512), %esi /* O_RDWR | O_CREAT | O_TRUNC */
+    mov $0x1a4, %edx /* 0644 permissions */
+    mov $2, %eax
+    syscall
+    sub %r10, %rax /* shift if writing */
+    movl %eax, read_write_fd
+    ret
+
+    .globl close
+close: /* closes the current file and resumes standard in and out */
+    movl read_write_fd, %edi
+    mov $3, %eax
+    syscall
+    xor %eax, %eax
+    mov %eax, read_write_fd
+    ret
