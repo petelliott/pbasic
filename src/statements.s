@@ -198,11 +198,6 @@ statement_stop:
     jmp unsupported_statement
 
 
-    .globl statement_clear
-statement_clear:
-    jmp unsupported_statement
-
-
     .globl statement_list
 statement_list:
     call list

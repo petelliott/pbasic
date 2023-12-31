@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     \mac rem
     \mac return
     \mac stop
-    \mac clear
     \mac list
     \mac run
     \mac new
