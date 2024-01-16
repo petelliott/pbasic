@@ -39,8 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .endm
 
     .macro error jump, code
-    mov $\code, %edi
-    \jump error_handler
+    \jump error_entry_\code
     .endm
 
     .macro get_linenumber src, dst

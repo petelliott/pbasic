@@ -18,7 +18,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     .include "macros.s"
 
+    .macro error_code name,c1,c2
+    .globl error_entry_\name
+    error_entry_\name:
+    mov $(\c1 | (\c2 << 8)), %edi
+    jmp error_handler
+    .endm
+
     .text
+    error_code OM, 'O, 'M
+    error_code SN, 'S, 'N
+    error_code US, 'U, 'S
+    error_code ID, 'I, 'D
+
     .globl error_handler
 error_handler: /* error_handler(errorcode: %edi) */
     mov $(page_start + 4096), %esp /* reset the stack */
@@ -53,13 +65,3 @@ error_handler: /* error_handler(errorcode: %edi) */
     .data
 error_str:  .asciz " ERROR"
 in_str:     .asciz " IN "
-
-    .macro error_code name,c1,c2
-    .globl \name
-    .set \name, \c1 | (\c2 << 8)
-    .endm
-
-    error_code OM, 'O, 'M
-    error_code SN, 'S, 'N
-    error_code US, 'U, 'S
-    error_code ID, 'I, 'D

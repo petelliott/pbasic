@@ -19,11 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
     .text
+// statement_end is just repl in repl.s
     .globl statement_end
-statement_end:
-    jmp repl
 
 
+    .globl statement_gosub
+statement_gosub:
+    pushw %bx
+    // intentional fallthrough
     .globl statement_goto
 statement_goto:
     inc %ebx
@@ -33,18 +36,10 @@ internal_goto:
     inc %ebx
     movl (%ebx), %ecx
     add $4, %ebx
-    cmpb $token_eof, (%ebx)
-    error jne, SN
+    call expect_eof
     mov %ecx, %edi
     call get_line
-    mov %rax, %r13
-    jmp exec_line
-
-
-    .globl statement_gosub
-statement_gosub:
-    pushw %bx
-    jmp statement_goto
+    jmp exec_line_rax
 
 
     .globl statement_if
@@ -78,9 +73,9 @@ statement_input:
     mov $exec_buffer, %esi
     call tokenize
 
-    inc %ebx
     mov $exec_buffer, %edx /* edx=tokenized input */
 0:
+    inc %ebx
     movb (%ebx), %al
     cmpb $token_var, %al
     je 1f
@@ -99,12 +94,10 @@ statement_input:
 
     mov %ecx, (%eax) /* set the variable */
 
-    inc %ebx /* skip potential comma */
-    movb -1(%ebx), %al
+    movb (%ebx), %al
     cmpb $',', %al
     je 0b
-    cmpb $token_eof, %al
-    error jne, SN
+    call expect_eof
     jmp exec_next_line
 
 
@@ -126,8 +119,7 @@ statement_let:
     call do_expression
     pop %rcx
     mov %eax, (%ecx)
-    cmpb $token_eof, (%ebx)
-    error jne, SN
+    call expect_eof
     jmp exec_next_line
 
 
@@ -207,8 +199,7 @@ statement_list:
     .globl statement_run
 statement_run:
     ldaddr code_head, ax
-    mov %rax, %r13
-    jmp exec_line
+    jmp exec_line_rax
 
 
     .globl statement_new
@@ -250,6 +241,10 @@ setup_open:
     mov %ebx, %edi
     ret
 
+expect_eof: /* takes current token in al, error if al=eof */
+    cmpb $token_eof, (%ebx)
+    error jne, SN
+    ret
 
     /* TODO: remove this once all statements are supported, or handle with the error mechanism */
 unsupported_statement:

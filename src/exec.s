@@ -20,9 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text
     .globl exec_next_line
     .globl exec_line
+    .globl exec_line_rax
     .globl exec_midline
 exec_next_line:
     get_nextline %r13, ax
+exec_line_rax:
     mov %rax, %r13
 exec_line:
     mov %r13, %rax

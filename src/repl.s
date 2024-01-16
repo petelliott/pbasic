@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .text
     .globl repl
     .globl repl_not_ok
+    .globl statement_end
+statement_end:
 repl:
     .set input, %r12
     .set output, %r14
