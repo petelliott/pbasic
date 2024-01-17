@@ -187,9 +187,26 @@ statement_return:
     jmp nextline_target_0
 
 
+    .data
+saved_r13:
+    .4byte 0
+    .text
+
+
     .globl statement_stop
 statement_stop:
-    jmp unsupported_statement
+    movl %r13d, saved_r13
+    jmp repl
+
+
+    .globl statement_cont
+statement_cont:
+    xor %eax, %eax
+    xchg %eax, saved_r13
+    test %eax, %eax
+    error jz, CN
+    mov %eax, %r13d
+    jmp nextline_target_1
 
 
     .globl statement_list
@@ -248,12 +265,3 @@ expect_eof: /* takes current token in al, error if al=eof */
     cmpb $token_eof, (%ebx)
     error jne, SN
     ret
-
-    /* TODO: remove this once all statements are supported, or handle with the error mechanism */
-unsupported_statement:
-    mov $unsupported_string, %edi
-    call write_string
-    jmp exec_next_line
-
-    .data
-unsupported_string: .asciz "unsupported statement\n"

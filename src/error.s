@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .endm
 
     .text
+    error_code CN, 'C, 'N
     error_code OM, 'O, 'M
     error_code SN, 'S, 'N
     error_code US, 'U, 'S
