@@ -98,7 +98,7 @@ statement_input:
     cmpb $',', %al
     je 0b
     call expect_eof
-    jmp exec_next_line
+    jmp nextline_target_0
 
 
     .globl statement_let
@@ -120,6 +120,8 @@ statement_let:
     pop %rcx
     mov %eax, (%ecx)
     call expect_eof
+    jmp nextline_target_0
+nextline_target_0:
     jmp exec_next_line
 
 
@@ -170,19 +172,19 @@ print_semicolon:
 1:
     call newline
 2:
-    jmp exec_next_line
+    jmp nextline_target_0
 
 
     .globl statement_rem
 statement_rem:
-    jmp exec_next_line
+    jmp nextline_target_0
 
 
     .globl statement_return
 statement_return:
     mov $page_start, %r13
     popw %r13w
-    jmp exec_next_line
+    jmp nextline_target_0
 
 
     .globl statement_stop
@@ -193,7 +195,7 @@ statement_stop:
     .globl statement_list
 statement_list:
     call list
-    jmp exec_next_line
+    jmp nextline_target_1
 
 
     .globl statement_run
@@ -230,6 +232,7 @@ statement_save:
     call list
     mov $1, %edi /* close for writing */
     call close
+nextline_target_1:
     jmp exec_next_line
 
 setup_open:
