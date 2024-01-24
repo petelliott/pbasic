@@ -275,7 +275,7 @@ push_var_entry:  /* edi=destination to write entry, inherits ecx, input, output 
 jmp_alphanum: /* edi=jump target true alphanum, esi=jump target false */
     cmpb $'0', %al
     jl 1f
-    cmpb $'1', %al
+    cmpb $'9', %al
     jle 0f
     or $0x20, %al /* remove clear lowercase bit */
     cmpb $'a', %al

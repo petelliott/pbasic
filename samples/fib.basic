@@ -1,0 +1,10 @@
+10 input n
+20 let n0=0
+30 let n1=1
+40 if n<= 1goto 100
+50 let n2=n1+n0
+60 let n0=n1
+70 let n1=n2
+80 let n=n-1
+90 goto 40
+100 print n1
